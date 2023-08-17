@@ -47,7 +47,15 @@ void AMoveCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("BeginPlay Testing Message"));
-	SpringArm->TargetArmLength = SpringArmLength;
+	if (SpringArmLength == 0.0f)
+	{
+		SpringArmLength = 600.0f;
+		SpringArm->TargetArmLength = SpringArmLength;
+	}
+	else
+	{
+		SpringArm->TargetArmLength = SpringArmLength;
+	}
 }
 
 // Called every frame
@@ -110,28 +118,58 @@ void AMoveCharacter::Jump_Stop()
 
 void AMoveCharacter::PickUp()
 {
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("BePickingUpNow..."));
-	if (BeHitActor->ActorHasTag("Actor.Gun.PickSomethingUp"))
+	if (BeHitActor != nullptr)
 	{
-		Attach_Something(BeHitActor, "GripPoint");
+		if (PickedActor == nullptr)
+		{
+			if (BeHitActor->ActorHasTag("Actor.Sword.IronSword") || BeHitActor->ActorHasTag("Actor.Sword.TestingSword") || BeHitActor->ActorHasTag("Actor.Axe.IronAxe"))
+			{
+				PickedActor = BeHitActor;
+				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, FString::Printf(TEXT("Picked Actor: %s"), *PickedActor->GetName()));
+				Attach_Something(BeHitActor, "GripPoint");
+			}
+		}
+		else
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("You picked something up already"));
+		}
 	}
 }
+
+
 
 void AMoveCharacter::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
 	BeHitActor = OtherActor;
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Detected Collision"));
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, FString::Printf(TEXT("OtherActor: %s"), *OtherActor->GetName()));
+//	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Detected Collision"));
+//	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, FString::Printf(TEXT("OtherActor: %s"), *OtherActor->GetName()));
 }
 
 void AMoveCharacter::Attach_Something(AActor* TargetActor, FName SocketName)
 {
 	UStaticMeshComponent* TargetActorCollisionComponent = TargetActor->GetComponentByClass<UStaticMeshComponent>();
 	TargetActorCollisionComponent->SetCollisionProfileName("NoCollision", true);
+	TransformPickedActor(TargetActor);
+	TargetActor->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, "GripPoint");
+}
 
-//	FVector TargetActorScale = TargetActor->GetActorScale();
-//	TargetActor->SetActorScale3D(TargetActorScale);
+void AMoveCharacter::TransformPickedActor(AActor* TargetActor)
+{
+	UStaticMeshComponent* TargetActorCollisionComponent = TargetActor->GetComponentByClass<UStaticMeshComponent>();
 
-	FAttachmentTransformRules AttachmentTransformRules(EAttachmentRule::SnapToTarget, true);
-	TargetActor->AttachToComponent(GetMesh(), AttachmentTransformRules, "GripPoint");
+	if (TargetActor->ActorHasTag("Actor.Sword.IronSword"))
+	{
+		TargetActorCollisionComponent->SetRelativeLocation(FVector(0.0f, 0.0f, -37.0f));
+		TargetActorCollisionComponent->SetRelativeRotation(FRotator(0.0f, 0.0f, 180.0f));
+	}
+	else if (TargetActor->ActorHasTag("Actor.Sword.TestingSword"))
+	{
+		TargetActorCollisionComponent->SetRelativeLocation(FVector(0.0f, 0.0f, 0.0f));
+		TargetActorCollisionComponent->SetRelativeRotation(FRotator(0.0f, 0.0f, 0.0f));
+	}
+	else if (TargetActor->ActorHasTag("Actor.Axe.IronAxe"))
+	{
+		TargetActorCollisionComponent->SetRelativeLocation(FVector(0.0f, 0.0f, -30.0f));
+		TargetActorCollisionComponent->SetRelativeRotation(FRotator(0.0f, 0.0f, 180.0f));
+	}
 }

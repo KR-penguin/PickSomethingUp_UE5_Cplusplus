@@ -38,6 +38,8 @@ public:
 		float SpringArmLength;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 		AActor* BeHitActor;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+		AActor* PickedActor;
 
 protected:
 
@@ -58,8 +60,10 @@ protected:
 
 public:
 
-	UFUNCTION(BlueprintCallable, Category = "Hit event")
+	UFUNCTION(BlueprintCallable, Category = "Pick Up event")
 		void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
-	UFUNCTION(BlueprintCallable, Category = "Hit event")
+	UFUNCTION(BlueprintCallable, Category = "Pick Up event")
 		void Attach_Something(AActor* TargetActor, FName SocketName);
+	UFUNCTION(BlueprintCallable, Category = "Pick Up event")
+		void TransformPickedActor(AActor* TargetActor);
 };
